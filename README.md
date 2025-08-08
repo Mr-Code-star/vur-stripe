@@ -115,7 +115,7 @@ En **modo test**, usa:
 - **Visa:** `4242 4242 4242 4242`  
   Fecha futura cualquiera, CVC 3 dígitos, ZIP cualquiera.
 
-Más tarjetas de prueba: Dashboard de Stripe → *Developers* → *Testing*.
+Más tarjetas de prueba: [Stripe Cards](https://docs.stripe.com/testing)
 
 ---
 
