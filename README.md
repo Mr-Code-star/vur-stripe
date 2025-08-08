@@ -22,7 +22,7 @@ stripe-vue/
 
 ## ⚙️ Requisitos
 
-- Node.js 18+
+- Node.js
 - Cuenta de Stripe (clave secreta **test**)
 - Precios creados en el **Dashboard de Stripe** (Products > Prices)
 
@@ -34,7 +34,6 @@ stripe-vue/
 ```dotenv
 STRIPE_SECRET_KEY=sk_test_************************
 CLIENT_URL=http://localhost:5173
-PORT=3001
 ```
 
 > **Nota:** `CLIENT_URL` debe coincidir con el origen del frontend para CORS y para `success_url`/`cancel_url`.
@@ -90,8 +89,10 @@ npm run dev
 ### Obtener precios
 ```js
 // Ejemplo con proxy (ruta relativa)
-const res = await fetch('/api/prices')
-const prices = await res.json()
+ const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/prices`)
+ const data = await res.json()
+ if (!res.ok) throw new Error(data.error || 'Error al obtener precios')
+ this.prices = data
 ```
 
 ### Crear checkout
@@ -101,39 +102,9 @@ const res = await fetch('/api/checkout', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ priceId })
 })
-const { url } = await res.json()
-window.location.href = url
-```
-
----
-
-## 🔒 CORS en desarrollo (elige una)
-
-1) **Proxy de Vite (recomendado)** – `web/vite.config.js`
-```js
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-
-export default defineConfig({
-  plugins: [vue()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true
-      }
-    }
-  }
-})
-```
-Usa rutas relativas (`/api/*`) en el frontend.
-
-2) **CORS en Express**
-```js
-import cors from 'cors'
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173']
-}))
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Checkout failed')
+  window.location.href = data.url
 ```
 
 ---
@@ -165,7 +136,7 @@ Más tarjetas de prueba: Dashboard de Stripe → *Developers* → *Testing*.
 ## 🚀 Despliegue (resumen)
 
 - **Backend**: Render, Railway, Fly, VPS, etc.  
-  - Configura variables `STRIPE_SECRET_KEY`, `CLIENT_URL`, `PORT`.
+  - Configura variables `STRIPE_SECRET_KEY`, `CLIENT_URL`.
   - Fuerza HTTPS.
 - **Frontend**: Vercel, Netlify, Cloudflare Pages, etc.  
   - Ajusta `CLIENT_URL` en el backend para que apunte a tu dominio público.
@@ -173,25 +144,6 @@ Más tarjetas de prueba: Dashboard de Stripe → *Developers* → *Testing*.
 
 ---
 
-## 🧩 Troubleshooting
-
-- **CORS bloqueado**  
-  - Verifica origen: `localhost` vs `127.0.0.1`  
-  - Usa proxy de Vite o configura `cors()` en Express.
-
-- **`Failed to fetch`**  
-  - Backend caído o puerto distinto. Revisa `node server.js` y la consola.
-  - Si tocas `.env`, **reinicia** el backend.
-
-- **`invalid_api_key` / `invalid_token`**  
-  - Revisa `STRIPE_SECRET_KEY` test vs live.
-  - Usa **keys de test** en desarrollo.
-
-- **No ves precios**  
-  - Crea `Products`/`Prices` en Dashboard de Stripe.
-  - Confirma que `priceId` que envías existe y es de **modo test**.
-
----
 
 ## 🧪 Scripts sugeridos
 
